@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import OUTPUTS_DIR
-from .routers import generate, physics, texture, export
+from .routers import generate, physics, texture, export, catalog
 
 # Configure logging
 logging.basicConfig(
@@ -25,7 +25,7 @@ app = FastAPI(
 # CORS — allow frontend dev server
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,6 +40,7 @@ app.include_router(generate.router, prefix="/api", tags=["Generate"])
 app.include_router(physics.router, prefix="/api", tags=["Physics"])
 app.include_router(texture.router, prefix="/api", tags=["Texture"])
 app.include_router(export.router, prefix="/api", tags=["Export"])
+app.include_router(catalog.router, prefix="/api", tags=["Catalog"])
 
 
 @app.get("/")

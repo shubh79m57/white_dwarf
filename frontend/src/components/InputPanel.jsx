@@ -1,10 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-export default function InputPanel({ onGenerate, isLoading }) {
-    const [prompt, setPrompt] = useState('');
+export default function InputPanel({ onGenerate, isLoading, initialPrompt = '' }) {
+    const [prompt, setPrompt] = useState(initialPrompt);
     const [imageFile, setImageFile] = useState(null);
     const [imageName, setImageName] = useState('');
     const fileRef = useRef();
+
+    useEffect(() => {
+        if (initialPrompt) setPrompt(initialPrompt);
+    }, [initialPrompt]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
