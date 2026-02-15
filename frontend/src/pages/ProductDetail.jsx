@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import furnitureData from '../data/furnitureData.js';
+import { useCart } from '../context/CartContext';
 
 const categoryIcons = {
     Chairs: '🪑',
@@ -14,12 +15,15 @@ const categoryIcons = {
 export default function ProductDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { addToCart } = useCart();
     const product = furnitureData.find(p => p.id === id);
+    const [quantity, setQuantity] = useState(1);
+    const [added, setAdded] = useState(false);
 
     if (!product) {
         return (
             <div className="product-detail-page">
-                <div className="detail-not-found glass-card">
+                <div className="detail-not-found">
                     <div style={{ fontSize: '3rem' }}>😕</div>
                     <h2>Product not found</h2>
                     <Link to="/catalog" className="btn btn-primary">← Back to Catalog</Link>
@@ -33,13 +37,23 @@ export default function ProductDetail() {
         .filter(p => p.category === product.category && p.id !== product.id)
         .slice(0, 3);
 
-    const handleCustomize = () => {
-        navigate(`/studio?prompt=${encodeURIComponent(product.modelPrompt)}&mode=customize`);
+    const handleAddToCart = () => {
+        for (let i = 0; i < quantity; i++) {
+            addToCart(product);
+        }
+        setAdded(true);
+        setTimeout(() => setAdded(false), 2000);
     };
 
-    const handleGenerateSimilar = () => {
-        const similarPrompt = `Similar to ${product.name} but with a unique twist: ${product.modelPrompt}`;
-        navigate(`/studio?prompt=${encodeURIComponent(similarPrompt)}&mode=similar`);
+    const handleBuyNow = () => {
+        for (let i = 0; i < quantity; i++) {
+            addToCart(product);
+        }
+        navigate('/checkout');
+    };
+
+    const handleCustomize = () => {
+        navigate(`/studio?prompt=${encodeURIComponent(product.modelPrompt)}&mode=customize`);
     };
 
     return (
@@ -57,7 +71,7 @@ export default function ProductDetail() {
 
             <div className="detail-layout">
                 {/* Product Image / 3D Preview Area */}
-                <div className="detail-viewer glass-card">
+                <div className="detail-viewer">
                     <div className="detail-img" data-category={product.category}>
                         <span className="detail-emoji">{categoryIcons[product.category]}</span>
                     </div>
@@ -79,8 +93,43 @@ export default function ProductDetail() {
                     <div className="detail-price">${product.price.toLocaleString()}</div>
                     <p className="detail-desc">{product.description}</p>
 
+                    {/* Quantity Selector */}
+                    <div className="detail-quantity">
+                        <label className="detail-qty-label">Quantity</label>
+                        <div className="qty-control qty-control-lg">
+                            <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>−</button>
+                            <span className="qty-value">{quantity}</span>
+                            <button className="qty-btn" onClick={() => setQuantity(quantity + 1)}>+</button>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="detail-actions">
+                        <button
+                            className={`btn btn-primary btn-lg btn-full ${added ? 'btn-success' : ''}`}
+                            onClick={handleAddToCart}
+                            id="add-to-cart-btn"
+                        >
+                            {added ? '✓ Added to Cart' : '🛒 Add to Cart'}
+                        </button>
+                        <button
+                            className="btn btn-accent btn-lg btn-full"
+                            onClick={handleBuyNow}
+                            id="buy-now-btn"
+                        >
+                            ⚡ Buy Now
+                        </button>
+                        <button
+                            className="btn btn-lg btn-full"
+                            onClick={handleCustomize}
+                            id="customize-btn"
+                        >
+                            ✨ Customize with AI
+                        </button>
+                    </div>
+
                     {/* Specifications */}
-                    <div className="detail-specs glass-card">
+                    <div className="detail-specs">
                         <h3 className="specs-title">Design Details</h3>
                         <div className="specs-grid">
                             <div className="spec-item">
@@ -102,30 +151,29 @@ export default function ProductDetail() {
                         </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="detail-actions">
-                        <button
-                            className="btn btn-primary btn-lg btn-full"
-                            onClick={handleCustomize}
-                            id="customize-btn"
-                        >
-                            ✨ Customize This Design
-                        </button>
-                        <button
-                            className="btn btn-lg btn-full"
-                            onClick={handleGenerateSimilar}
-                            id="similar-btn"
-                        >
-                            🔄 Generate Similar
-                        </button>
-                        <Link
-                            to="/studio"
-                            className="btn btn-lg btn-full"
-                            id="design-new-btn"
-                            style={{ textDecoration: 'none', textAlign: 'center' }}
-                        >
-                            ✦ Design Something New
-                        </Link>
+                    {/* Delivery Info */}
+                    <div className="detail-delivery">
+                        <div className="delivery-item">
+                            <span className="delivery-icon">🚚</span>
+                            <div>
+                                <div className="delivery-title">Free Shipping</div>
+                                <div className="delivery-desc">On orders above $500</div>
+                            </div>
+                        </div>
+                        <div className="delivery-item">
+                            <span className="delivery-icon">↩️</span>
+                            <div>
+                                <div className="delivery-title">30-Day Returns</div>
+                                <div className="delivery-desc">No questions asked</div>
+                            </div>
+                        </div>
+                        <div className="delivery-item">
+                            <span className="delivery-icon">🛡️</span>
+                            <div>
+                                <div className="delivery-title">2-Year Warranty</div>
+                                <div className="delivery-desc">Manufacturer warranty</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -141,7 +189,7 @@ export default function ProductDetail() {
                     </div>
                     <div className="featured-grid" style={{ gridTemplateColumns: `repeat(${related.length}, 1fr)` }}>
                         {related.map(item => (
-                            <Link key={item.id} to={`/catalog/${item.id}`} className="featured-card glass-card">
+                            <Link key={item.id} to={`/catalog/${item.id}`} className="featured-card">
                                 <div className="featured-img" data-category={item.category}>
                                     <span className="featured-emoji">{categoryIcons[item.category]}</span>
                                 </div>

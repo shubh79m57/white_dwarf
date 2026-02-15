@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 const categoryIcons = {
     Chairs: '🪑',
@@ -11,10 +12,21 @@ const categoryIcons = {
 };
 
 export default function ProductCard({ product, index }) {
+    const { addToCart } = useCart();
+    const [added, setAdded] = useState(false);
+
+    const handleAddToCart = (e) => {
+        e.preventDefault(); // Prevent Link navigation
+        e.stopPropagation();
+        addToCart(product);
+        setAdded(true);
+        setTimeout(() => setAdded(false), 1500);
+    };
+
     return (
         <Link
             to={`/catalog/${product.id}`}
-            className="product-card glass-card"
+            className="product-card"
             style={{ animationDelay: `${index * 0.05}s` }}
             id={`product-${product.id}`}
         >
@@ -30,11 +42,13 @@ export default function ProductCard({ product, index }) {
                 <p className="product-desc">{product.description.substring(0, 80)}...</p>
                 <div className="product-footer">
                     <span className="product-price">${product.price.toLocaleString()}</span>
-                    <span className="product-tags">
-                        {product.tags.slice(0, 2).map(t => (
-                            <span key={t} className="product-tag">#{t}</span>
-                        ))}
-                    </span>
+                    <button
+                        className={`add-to-cart-btn ${added ? 'added' : ''}`}
+                        onClick={handleAddToCart}
+                        id={`add-cart-${product.id}`}
+                    >
+                        {added ? '✓ Added' : 'Add to Cart'}
+                    </button>
                 </div>
             </div>
         </Link>
