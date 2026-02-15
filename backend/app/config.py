@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the backend directory (parent of app/)
+_env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(_env_path)
 
 # ── API Keys ──────────────────────────────────────────────────
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN", "")
